@@ -152,6 +152,8 @@ source activate camera && xvfb-run --auto-servernum --server-num=1 python run_ca
 source activate camera && xvfb-run --auto-servernum --server-num=1 python run_camera_vis.py --seq_name arc2 --out_dir ../data/cam_optim_res
 ```
 
+![arc2](D:\my_papers\cinematic_transfer\cinetransfer-code\results\arc2.gif)
+
 ## Citation
 
 If you find this paper and repo useful for your research, please consider citing our paper.

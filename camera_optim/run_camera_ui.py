@@ -15,7 +15,6 @@ from tqdm import tqdm
 import torchvision.transforms.functional as fn
 import torchvision.transforms
 from torch.utils.data import DataLoader
-# torch.autograd.set_detect_anomaly(True)
 
 from filmingnerf.data import get_data_from_cfg
 from filmingnerf.tools.tensor import get_device, move_to
@@ -63,8 +62,7 @@ def camera_init(p_x,p_y,p_z,scale,Phi,Theta):
         img = (rgb.cpu().numpy()*255).astype(np.uint8)
     print('loss:', loss)
     dst = cv2.addWeighted(img, 0.7, rgb_gt.cpu().numpy(), 0.3, 0)
-    # import pdb;pdb.set_trace()
-    # tmp save 
+
     tmp_path = os.path.join(cfg.out_dir, cfg.seq_name)
     os.makedirs(tmp_path, exist_ok=True)
     cv2.imwrite(os.path.join(tmp_path, 'cache_first_pose.png'), dst)
@@ -75,10 +73,8 @@ def pose_optimize():
     camera_model = BaseCameraModel(xfov, yfov).to(device)
     optimizer = torch.optim.Adam(params=camera_model.parameters(), lr=0.01, betas=(0.9, 0.999))
     imgs = []
-    depths = []
     print('start camera pose optimizing process......')
     for i_step in tqdm(range(cfg.cam_optim_setps)):
-    # for i_step in tqdm(range(10)):
         pose = camera_model(init_pose)
         ngp_pose = camera_model.nerf_matrix_to_ngp(pose)
         hwf = [
@@ -116,29 +112,20 @@ def pose_optimize():
                     kp_loss = kp_loss + torch.abs((gt[:2]-pre[:2])).mean()
         kp_loss = kp_loss.mean()
 
-        # cv2.imshow('', joint_img)
-        # cv2.waitKey(0)
-        # import pdb;pdb.set_trace()
-
         loss = loss_rgb + kp_loss
 
         optimizer.zero_grad()
-        # import pdb;pdb.set_trace()
         loss.backward()
         optimizer.step()
 
         if i_step % 10 == 0:
-            # show_grad(camera_model)
             print(f"Step {i_step}, loss: {loss}")
         
         save_root = os.path.join(cfg.out_dir, cfg.seq_name, str(t))
         os.makedirs(save_root, exist_ok=True)
-        depth = depth.cpu().detach().numpy()
+
         rgb = rgb.cpu().detach().numpy()
-        depth8 = to8b(depth)
         rgb8 = to8b(rgb)
-        filename_dep = os.path.join(save_root, str(i_step)+'_depth'+'.png')
-        dst_dep = cv2.addWeighted(depth8, 0.7, depth_gt.cpu().numpy(), 0.3, 0)
         
         filename_rgb = os.path.join(save_root, str(i_step)+'_rgb'+'.png')
         dst_rgb = cv2.addWeighted(rgb8, 0.7, rgb_gt.cpu().numpy(), 0.3, 0)
@@ -150,15 +137,12 @@ def pose_optimize():
             dst = cv2.addWeighted(joint_img, 0.7, rgb_gt.cpu().numpy(), 0.3, 0)
             imageio.imwrite(filename, dst)
             
-            depths.append(dst_dep)
+
             imgs.append(dst_rgb)
-            imageio.imwrite(filename_dep, depth8)
             imageio.imwrite(filename_rgb, rgb8)
 
-        # import pdb;pdb.set_trace()
         
     saveJson(os.path.join(save_root, f'init_pose.json'), pose.cpu().tolist())
-    imageio.mimwrite(os.path.join(save_root, f'depth_vid.gif'), depths, fps=8)
     imageio.mimwrite(os.path.join(save_root, f'rgb_vid.gif'), imgs, fps=8)
     return imgs[-1],pose_visualise(camera_model.T.detach().cpu())
 
@@ -170,19 +154,13 @@ def pose_visualise(pose,radius=0.2,height=0.3, up="y"):
     cam_verts, cam_faces, _ = camera_marker_geometry(radius, height, up)
     
     for i in range(len(cam_verts)):
-        # verts[i][1] = -verts[i][1]
-        # verts[i][2] = -verts[i][2]
         tmp = torch.ones(4).cpu()
         tmp[:3] = torch.Tensor(cam_verts[i]).cpu()
-        # import pdb;pdb.set_trace()
         cam_verts[i] = (pose @ tmp).numpy()[:3]
     
     x = cam_verts[:,0].tolist()
-    # x = [-i for i in x]
     y = cam_verts[:,1].tolist()
     z = cam_verts[:,2].tolist()
-    # y = [-i for i in y]
-    # z = [-i for i in z]
     
     i = cam_faces[:,0].tolist()
     j = cam_faces[:,1].tolist()
@@ -204,10 +182,8 @@ def pose_visualise(pose,radius=0.2,height=0.3, up="y"):
     for k in range(cal_smpl_verts.shape[0]):
         transform = torch.eye(4)
         transform[:3,3] = torch.Tensor(mesh_center)
-        # print(t, verts[:10])
+
         for i in range(len(cal_smpl_verts[k])):
-            # verts[i] = verts[i] - torch.Tensor(mesh_center)
-            # import pdb;pdb.set_trace()
             cal_smpl_verts[k][i][1] = -cal_smpl_verts[k][i][1]
             cal_smpl_verts[k][i][2] = -cal_smpl_verts[k][i][2]
             tmp = torch.ones((4,1))
@@ -216,16 +192,13 @@ def pose_visualise(pose,radius=0.2,height=0.3, up="y"):
 
         x,y,z = [],[],[]
         x = cal_smpl_verts[k][:, 0].tolist()
-        # x = [-i for i in x]
         y = cal_smpl_verts[k][:, 1].tolist()
-        # z = [-i for i in z]
         z = cal_smpl_verts[k][:, 2].tolist()
-        # y = [-i for i in y]
   
         i = smpl_faces[t][:,0].tolist()
         j = smpl_faces[t][:,1].tolist()
         k = smpl_faces[t][:,2].tolist()
-        # import pdb;pdb.set_trace()
+
         smpl_mesh = go.Mesh3d(x=x, y=y, z=z, i=i,j=j,k=k,
                             color='lightblue', opacity=1)
         data.append(smpl_mesh)
@@ -249,7 +222,6 @@ def pose_visualise(pose,radius=0.2,height=0.3, up="y"):
     return fig
     
 def CineUI():
-    # import pdb;pdb.set_trace()
     with gr.Row():
         with gr.Blocks(title='Cinematic Space'):
             with gr.Column():
@@ -325,7 +297,6 @@ if __name__ == "__main__":
     mesh_center = torch.Tensor(mesh_center)
     mesh_colors = torch.Tensor(mesh_colors)
 
-    depth_gt = obs_data['depth'][t]
     rgb_gt = obs_data['rgb'][t]
     mask_img = obs_data['mask'][t]/255
     mask = obs_data['mask'][t]>0
@@ -333,13 +304,11 @@ if __name__ == "__main__":
     mapping_ids = smpl_info['mapping_ids']
     smpl_joints = smpl_info['joints'][:,t,:,:]
 
-    # import pdb;pdb.set_trace()
     print('generate mask color img')
     mask_root= dataset.data_sources['mask_root']
     track_path = dataset.data_sources['tracks']
     seq_name = dataset.seq_name
     img_name = dataset.img_names[t]
-    # import pdb;pdb.set_trace()
     mask_color_img = np.ones_like(rgb_gt.cpu().numpy())*255
     start = cfg.track_sid
     end = min(cfg.track_sid+len(mesh_colors), cfg.track_eid)
@@ -355,8 +324,7 @@ if __name__ == "__main__":
         mask_img_p = imageio.imread(mask_file_path)
         mask_img_p = cv2.resize(mask_img_p, (w, h))
         color_mask = mask_img_p > 0
-        # color_mask_img_p = np.zeros_like(rgb_gt.cpu().numpy())
-        # color_mask_img_p[color_mask] = color.cpu().numpy()
+
         mask_color_img[color_mask] = color.cpu().numpy()
     mask_color_img = torch.tensor(mask_color_img).to(device)
 

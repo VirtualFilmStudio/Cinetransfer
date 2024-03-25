@@ -11,7 +11,6 @@ from tqdm import tqdm
 import torchvision.transforms.functional as fn
 import torchvision.transforms
 from torch.utils.data import DataLoader
-# torch.autograd.set_detect_anomaly(True)
 
 from filmingnerf.data import get_data_from_cfg
 from filmingnerf.tools.tensor import get_device, move_to
@@ -40,8 +39,6 @@ def run_opt(cfg, dataset, device):
     layouts, smpl_info, floor_plane, cam_R, cam_t = load_layouts(tracks_path, smpl_model_path, vis_mask, track_ids)
 
     nerf_data_root, offset_centers, mask_colors = launch_renderer_dnerf(layouts, smpl_info, cfg, viewer=False)
-    # return 0
-    # nerf_config_path = gen_nerf_config_dnerf(nerf_data_root, f'{cfg.seq_name}')
 
     workspace = os.path.join(nerf_data_root, 'dlogs')
     nerf = build_nerf(nerf_data_root, workspace, device)
@@ -49,7 +46,6 @@ def run_opt(cfg, dataset, device):
     
     if not os.path.exists(ckpts_path) or cfg.overwrite:
         nerf.train()
-    # return 0
 
     ckpts = [os.path.join(ckpts_path, f) for f in sorted(os.listdir(ckpts_path)) if 'pth' in f]
     nerf.load_ckpt(ckpts[-1])
@@ -67,13 +63,11 @@ def run_opt(cfg, dataset, device):
     if os.path.exists(save_root):
         init_pose = openJson(save_root)
     else:
-        # from run_camera_vis import transform_pyrender, transform_slam
         from run_cam_vis import transform_pyrender, transform_slam
         camera_poses_w2c = make_4x4_pose(cam_R, cam_t)
         camera_poses_c2w = torch.linalg.inv(camera_poses_w2c)
         camera_poses_c2w = transform_pyrender(camera_poses_w2c)
-        # camera_poses_c2w = torch.linalg.inv(camera_poses_w2c).cpu().numpy()
-        # camera_poses_c2w = transform_pyrender(torch.Tensor(camera_poses_c2w))
+
         camera_poses_c2w = transform_slam(torch.Tensor(camera_poses_c2w))
         camera_poses_c2w[:,3,:] = np.array([0,0,0,1])
         
@@ -87,14 +81,12 @@ def run_opt(cfg, dataset, device):
     yfov = meta['camera_angle_y']
 
     camera_model = CameraSequencerBase().to(device)
-    # camera_model.apply(weight_init)
 
     save_fig_root = os.path.join(cfg.out_dir, cfg.seq_name, 'optim')
     os.makedirs(save_fig_root, exist_ok=True)
     save_fig_path = os.path.join(save_fig_root, f'init_func.png')
     camera_model.show_fig(T, save=True, save_path=save_fig_path)
     
-    # optimizer = torch.optim.SGD(camera_model.parameters(),lr=0.001)
     optimizer = torch.optim.Adam(params=camera_model.parameters(), lr=0.001, betas=(0.9, 0.999))
     mse_loss = torch.nn.MSELoss()
     scaler = torch.cuda.amp.GradScaler(enabled=True)
@@ -115,7 +107,6 @@ def run_opt(cfg, dataset, device):
         xfov = float(meta['camera_angle_x'])
         yfov = float(meta['camera_angle_y'])
 
-        depth_gt = obs_data['depth'][t]
         rgb_gt = obs_data['rgb'][t]
         mask_img = obs_data['mask'][t]/255
         mask = obs_data['mask'][t]>0
@@ -124,7 +115,6 @@ def run_opt(cfg, dataset, device):
         smpl_joints = smpl_info['joints'][:,t,:,:]
         h, w, _ = rgb_gt.shape 
 
-        # print('generate mask color img')
         mask_root= dataset.data_sources['mask_root']
         track_path = dataset.data_sources['tracks']
         seq_name = dataset.seq_name
@@ -154,7 +144,7 @@ def run_opt(cfg, dataset, device):
         near = 1
         far = 30
         epochs = 80
-        # init_pose = torch.Tensor(poses[t-1]).to(device)
+        
         for i_step in tqdm(range(epochs)):
             time_step = 1/(T-1)
             pose = camera_model(init_pose, t*time_step)
@@ -169,11 +159,6 @@ def run_opt(cfg, dataset, device):
             
             rgb, depth = nerf.render_optim(ngp_pose, hwf, t*time_step)
             rgb = rearrange(rgb, '(h w) c -> h w c', h=h)
-
-            # rgb8 = to8b(rgb.cpu().detach().numpy())
-            # cv2.imshow('', rgb8)
-            # cv2.waitKey(0)
-            # import pdb;pdb.set_trace()
 
             depth = rearrange(depth, '(h w) -> h w', h=h)
             mask_dep = depth > 0
@@ -227,7 +212,6 @@ def run_opt(cfg, dataset, device):
                 imgs[t] = dst
             
             optimizer.zero_grad()
-            # import pdb;pdb.set_trace()
             loss.backward()
             optimizer.step()
         save_fig_path = os.path.join(cfg.out_dir, cfg.seq_name, 'optim', f'{t}_func.png')
