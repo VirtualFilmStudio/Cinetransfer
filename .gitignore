@@ -4,7 +4,6 @@ build/
 *.so
 
 tmp*
-data/
 trial*/
 .vs/
 
