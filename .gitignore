@@ -2,6 +2,7 @@ __pycache__/
 build/
 *.egg-info/
 *.so
+.ipynb_checkpoints/ 
 
 tmp*
 trial*/

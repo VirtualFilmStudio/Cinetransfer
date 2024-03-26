@@ -1,7 +1,0 @@
-TODO:
-1. 测试code能否正常运行，结果是否符合预期
-2. 删掉没有用到的code
-3. polish code & README details (README可以添加一些results的GIF)
-
-NOTE:
-可以参考SLAHMR.ipynb安装slahmr运行环境，中间有一些需要科学上网的安装包，存储在了oss
