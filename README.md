@@ -162,8 +162,8 @@ If you find this paper and repo useful for your research, please consider citing
 @article{jiang2023cinematic,
       title={Cinematic Behavior Transfer via NeRF-based Differentiable Filming},
       author={Jiang, Xuekun and Rao, Anyi and Wang, Jingbo and Lin, Dahua and Dai, Bo},
-      journal={arXiv preprint arXiv:},
-      year={2023}
+      booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+      year={2024}
   }
 ```
 
