@@ -72,7 +72,6 @@ def test():
     up = np.array([0,1,0])
     cam_poses = []
     for pos in sample_pos:
-        # import pdb;pdb.set_trace()
         src_pos = [i*radius for i in pos]
         camera_pose = camera_look_at(src_pos, np.array([0,0,0]), up)
         cam_poses.append(camera_pose)
@@ -82,8 +81,6 @@ def test():
     for mesh in meshes:
         renderer.add_mesh(mesh, mesh_trans)
 
-    # for cam_pose in cam_poses: 
-    #     renderer.add_camera(cam_pose, visiable=True)
     renderer.add_camera(cam_poses[0])
 
     renderer.add_light('directlight', light_trans, np.ones(3), 10)
@@ -92,8 +89,6 @@ def test():
     import pyrender
 
     flags = RenderFlags.RGBA
-    # flags = RenderFlags.NONE
-    # pyrender.Viewer(renderer.scene)
     for i in range(n_samples):
         cam_node = renderer.camera_node
         renderer.scene.set_pose(cam_node, cam_poses[i])

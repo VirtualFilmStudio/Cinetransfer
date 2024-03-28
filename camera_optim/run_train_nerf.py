@@ -11,7 +11,6 @@ from tqdm import tqdm
 import torchvision.transforms.functional as fn
 import torchvision.transforms
 from torch.utils.data import DataLoader
-# torch.autograd.set_detect_anomaly(True)
 
 from filmingnerf.data import get_data_from_cfg
 from filmingnerf.tools.tensor import get_device, move_to
@@ -39,8 +38,6 @@ def run_opt(cfg, dataset, device):
     layouts, smpl_info, floor_plane, cam_R, cam_t = load_layouts(tracks_path, smpl_model_path, vis_mask, track_ids)
 
     nerf_data_root, offset_centers, mask_colors = launch_renderer_dnerf(layouts, smpl_info, cfg, viewer=False)
-    # continue
-    # nerf_config_path = gen_nerf_config_dnerf(nerf_data_root, f'{cfg.seq_name}')
 
     workspace = os.path.join(nerf_data_root, 'dlogs')
     nerf = build_nerf(nerf_data_root, workspace, device)

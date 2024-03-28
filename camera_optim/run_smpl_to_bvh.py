@@ -40,16 +40,11 @@ def run_smpl2bvh(cfg, dataset, device):
     tracks_path = os.path.join(cfg.data_root, cfg.seq_name, f"{cfg.seq_name}.npz")
     smpl_model_path = os.path.join(cfg.data_root, 'smpl_tmpl_model.npz')
     smpl_orients, smpl_translate = load_smpl(tracks_path, smpl_model_path, vis_mask, track_ids)
-    # import pdb;pdb.set_trace()
-    # smpl_orients_quat = angle_axis_to_quaternion(smpl_orients)
-    # smpl_orients_matrix = quaternion_to_rotation_matrix(smpl_orients_quat)
-    # motion_matrix = make_4x4_pose(smpl_orients_matrix, smpl_trans).cpu().numpy()
     
     import pickle
     for i in range(len(smpl_orients)):
         smpl_poses = smpl_orients[i].cpu().numpy()
         smpl_trans = smpl_translate[i].cpu().numpy()
-        # import pdb;pdb.set_trace()
         out = {
             'smpl_poses':smpl_poses,
             'smpl_trans':smpl_trans,
@@ -57,30 +52,6 @@ def run_smpl2bvh(cfg, dataset, device):
         }
         with open(f'{cfg.seq_name}_{i}.pkl', 'wb') as file:
             pickle.dump(out, file)
-
-    # from fairmotion.data import bvh
-
-    # BVH_FILENAME = "D:/630_demo/motionDiffusion/ik/joystick/final/out.bvh"
-    # motion = bvh.load(BVH_FILENAME)
-    
-    # from fairmotion.core.motion import Motion
-
-    # # motion_matrix has shape (num_frames, num_joints, 4, 4) where 4x4 is transformation matrix
-    # # motion_matrix = motion.to_matrix()
-
-    # translation_matrix = np.zeros((4, 4))
-    # translation_matrix[3, :3] = np.array([1, 1, 1])
-
-    # for i in range(len(motion_matrix)):
-    #     translated_motion_matrix = motion_matrix[i] + translation_matrix
-    #     sliced_motion_matrix = translated_motion_matrix[:,:22]
-    #     import pdb;pdb.set_trace()
-    #     sliced_motion = Motion.from_matrix(sliced_motion_matrix, motion.skel)
-
-    #     NEW_BVH_FILENAME = f"smpl_{i}.bvh"
-    #     bvh.save(sliced_motion, NEW_BVH_FILENAME)
-
-
 
 
 def main():

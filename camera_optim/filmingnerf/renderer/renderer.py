@@ -2,9 +2,7 @@ import os
 import numpy as np
 import trimesh
 import imageio
-
 import pyrender
-
 from .geometry.camera import lookat_matrix
 
 class Renderer():
@@ -30,10 +28,6 @@ class Renderer():
             )
             self.scene.set_pose(camera_marker_node, pose)
 
-        # translate, rotation, scale = transform.get_TRS()
-        # node = self._gen_node('camera', camrea, translate, rotation, scale)
-        # self.scene.add_node(node)
-
     def add_light(self, light_type, transform, color=np.ones(3), intensity=1, **kwargs):
         if light_type == "spotlight":
             light = pyrender.SpotLight(color=color, intensity=intensity, **kwargs)
@@ -41,7 +35,6 @@ class Renderer():
             light = pyrender.DirectionalLight(color=color, intensity=intensity, **kwargs)
         elif light_type == 'pointlight':
             light = pyrender.PointLight(color=color, intensity=intensity, **kwargs)
-        # self.scene.add(light)
         translate, rotation, scale = transform.get_TRS()
         node = self._gen_node("light", light, translate, rotation, scale)
         self.scene.add_node(node)
@@ -52,7 +45,6 @@ class Renderer():
         """
         translate, rotation, scale = transform.get_TRS()
         mesh = pyrender.Mesh.from_trimesh(mesh)
-        # self.scene.add(mesh)
         node = self._gen_node("mesh", mesh, translate, rotation, scale)
         self.scene.add_node(node)
         return node

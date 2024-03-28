@@ -14,7 +14,6 @@ MIN_TRACK_LEN = 20
 MIN_KEYP_CONF = 0.4
 
 
-
 def get_data_from_cfg(cfg):
     data_source = {
         "images": os.path.join(cfg.data_root, cfg.seq_name,'images'),
@@ -45,7 +44,6 @@ class CameraTrajectoryDataset(Dataset):
         self.mask_imgs_path  = self.load_images_path(0, start_idx, end_idx, 'mask')
         self.load_track_data()
 
-        # self.sel_img_paths = self.img_paths[self.start_idx:self.end_idx]
         self.sel_img_names = self.img_names[self.start_idx:self.end_idx]
 
         # used to cache data
@@ -260,11 +258,6 @@ class CameraData(object):
             cam_R, cam_t, intrins, width, height = load_cameras_npz(fpath)
             scale = img_w / width
             self.intrins = scale * intrins[sidx:eidx]
-            # move first camera to origin
-            #             R0, t0 = invert_camera(cam_R[sidx], cam_t[sidx])
-            #             self.cam_R = torch.einsum("ij,...jk->...ik", R0, cam_R[sidx:eidx])
-            #             self.cam_t = t0 + torch.einsum("ij,...j->...i", R0, cam_t[sidx:eidx])
-#             t0 = -cam_t[sidx:eidx].mean(dim=0) + torch.randn(3) * 0.1
             t0 = -cam_t[sidx:sidx+1] + torch.randn(3).cpu() * 0.1
             self.cam_R = cam_R[sidx:eidx]
             self.cam_t = cam_t[sidx:eidx] - t0
@@ -337,7 +330,7 @@ def get_ternary_mask(vis_mask):
 
 
 if __name__ == "__main__":
-    data_root = "D:/Python Code/CameraExtractor/data"
+    data_root = "xxx/data"
     seq_name = 'follow0'
     data_source = {
         "images": os.path.join(data_root, 'images', seq_name),
@@ -358,4 +351,3 @@ if __name__ == "__main__":
         vis_mask = data['vis_mask']
         cv2.imshow('1', depth)
         cv2.waitKey(0)
-        # import pdb;pdb.set_trace() 

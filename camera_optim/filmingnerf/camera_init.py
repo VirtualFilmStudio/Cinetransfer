@@ -13,7 +13,6 @@ def spherical_sampling(n_samples, center, radius, offset=np.array([0,0,0])):
     for pos in sample_pos:
         src_pos = [i*radius for i in pos]
         target = np.array(center) + offset
-        # import pdb;pdb.set_trace()
         camera_pose = camera_look_at(src_pos, target, up)
         camera_poses.append(camera_pose)
     return camera_poses
@@ -28,7 +27,6 @@ def double_spherical_sampling(cam_samples, r_cam, tar_samples, r_tar):
         targets = spherical_sample(tar_samples)
         for target in targets:
             target = np.array([i*r_tar for i in target])
-            # import pdb;pdb.set_trace()
             camera_pose = camera_look_at(src_pos, target, up)
             camera_poses.append(camera_pose)
     return camera_poses
@@ -106,7 +104,6 @@ def CalSphericalSpaceNGP(params, up):
 
 
 def CalCinematicSpace(params, up, forward):
-    # params = [i.cpu() for i in params]
     cinecore_pos, cinecore_rot, gamma, delta, Alpha, Phi, Theta = params
     cine_rot_m = quaternion_to_rotation_matrix(cinecore_rot.unsqueeze(0)).squeeze(0)
     Q_z = cine_rot_m@forward.unsqueeze(1).squeeze(1)
@@ -148,5 +145,4 @@ def CalCinematicSpace(params, up, forward):
     camera_pos = P
 
     pose = lookat_matrix(camera_pos.unsqueeze(0), cinecore_pos.unsqueeze(0), up)
-    # pose = lookat_matrix(camera_pos.unsqueeze(0), IO.unsqueeze(0), up)
     return pose[0]

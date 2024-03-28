@@ -2,13 +2,11 @@ import torch
 import argparse
 
 from torch_ngp.dnerf.provider import NeRFDataset
-# # from dnerf.gui import NeRFGUI
 from torch_ngp.dnerf.utils import *
 
 from functools import partial
 from torch_ngp.loss import huber_loss
 
-#torch.autograd.set_detect_anomaly(True)
 
 def config_parser():
     parser = argparse.ArgumentParser()
@@ -105,8 +103,6 @@ if __name__ == '__main__':
     print(model)
 
     criterion = torch.nn.MSELoss(reduction='none')
-    #criterion = partial(huber_loss, reduction='none')
-    #criterion = torch.nn.HuberLoss(reduction='none', beta=0.1) # only available after torch 1.10 ?
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     

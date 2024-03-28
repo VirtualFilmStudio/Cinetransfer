@@ -67,7 +67,6 @@ def get_plane_transform(up, ground_plane=None, xyz_orig=None):
     t = torch.zeros(3)
     if ground_plane is None:
         return R, t
-    # import pdb;pdb.set_trace()
     # compute transform between world up vector and passed in floor
     ground_plane = torch.as_tensor(ground_plane)
     ground_plane = torch.sign(ground_plane[3]) * ground_plane
@@ -231,7 +230,6 @@ def transform_pyrender(T_c2w):
     """
     :param T_c2w (*, 4, 4)
     """
-
     T_vis = torch.tensor(
         [
             [1.0, 0.0, 0.0, 0.0],
@@ -267,13 +265,6 @@ def transform_slam(T_c2w):
 def run_vis(cfg, dataset, device):
     B = len(dataset)
     T = dataset.seq_len
-    # cam_data= dataset.get_camera_data()
-    # camera_poses_w2c = make_4x4_pose(cam_data['cam_R'], cam_data['cam_t'])
-    
-    # slam_camera_data = openJson(os.path.join(cfg.data_root, cfg.seq_name, f'{cfg.seq_name}_slam.json'))
-    # slam_camera_data = openJson(os.path.join(cfg.data_root, cfg.seq_name, 'frame_cameras.json'))
-    # cam_R = torch.Tensor(slam_camera_data['rotation']).reshape(-1,3,3)
-    # cam_t = torch.Tensor(slam_camera_data['translation'])
 
     loader = DataLoader(dataset, batch_size=int(T), shuffle=False)
 
@@ -329,14 +320,9 @@ def run_vis(cfg, dataset, device):
         camera_poses_w2c = make_4x4_pose(cam_R, cam_t)
         camera_poses_c2w = torch.linalg.inv(camera_poses_w2c)
         camera_poses_c2w = transform_pyrender(camera_poses_w2c)
-        # camera_poses_c2w = torch.linalg.inv(camera_poses_w2c).cpu().numpy()
-        # camera_poses_c2w = transform_pyrender(torch.Tensor(camera_poses_c2w))
         camera_poses_c2w = transform_slam(torch.Tensor(camera_poses_c2w))
         data = camera_poses_c2w
         data[:,3,:] = np.array([0,0,0,1])
-        # data[:,:3,3] = data[:,:3,3] * np.array([1, -1, -1])
-
- 
         
     H,W = cfg.nerf_render_img_hw
     renderer = Renderer(cfg.downsample*W,cfg.downsample*H,alight=[0.3, 0.3, 0.3],bg_color=[1.0, 1.0, 1.0, 0.0])
@@ -362,7 +348,6 @@ def run_vis(cfg, dataset, device):
         renderer.add_light('directlight', light_trans, np.ones(3), 0.9)
         c2w = data[t]
         renderer.add_camera(c2w, visiable=True)
-    # for t in [0]:
         for k in range(len(verts[t]))[cfg.track_sid:cfg.track_eid]:
             mesh = make_mesh(verts[t][k], faces[t], colors[t][k][:3])
             meshes.append(mesh)
@@ -378,7 +363,6 @@ def run_vis(cfg, dataset, device):
             mesh = make_mesh(verts[t][k], faces[t], colors[t][k][:3])
             meshes.append(mesh)
         for mesh in meshes:
-            # renderer.add_mesh(mesh, mesh_trans)
             renderer.scene.add_node(
             pyrender.Node(mesh=pyrender.Mesh.from_trimesh(mesh)))
 
@@ -391,11 +375,7 @@ def run_vis(cfg, dataset, device):
 
 
     img_save_path = os.path.join(cfg.out_dir, cfg.seq_name)
-    # for i,img in enumerate(imgs):
-    #     imageio.imsave(os.path.join(img_save_path, "slam_{:0>4d}.png".format(i)), img)
-    # imageio.mimwrite(os.path.join(img_save_path, 'slam_colmap.gif'), imgs, fps=30)
-    # imageio.mimwrite(os.path.join(img_save_path, 'final_view.gif'), imgs, fps=15)
-    
+
     if use_opti:
         if smooth:
             imageio.mimwrite(os.path.join(img_save_path, '3d_view_smooth.gif'), imgs, fps=30)
@@ -422,9 +402,6 @@ def trans_matrix_smooth(data, n=10):
     data[n-1:, :3, :3] = rotations
     data[n-1:, :3, 3] = positions
     return data
-  
-    
-
 
 def main():
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
@@ -434,9 +411,6 @@ def main():
     device = torch.device('cpu')
     run_vis(cfg, dataset, device)
 
-
 if __name__ == "__main__":
     main()
-    # from renderer import test
-    # test.test()
 

@@ -71,8 +71,6 @@ def get_plane_transform(up, ground_plane=None, xyz_orig=None):
     t = torch.zeros(3)
     if ground_plane is None:
         return R, t
-    # import pdb;pdb.set_trace()
-    # compute transform between world up vector and passed in floor
     ground_plane = torch.as_tensor(ground_plane)
     ground_plane = torch.sign(ground_plane[3]) * ground_plane
 
@@ -231,11 +229,11 @@ def camera_marker_geometry(radius, height, up):
     )
     return vertices, faces, face_colors
 
+
 def transform_pyrender(T_c2w):
     """
     :param T_c2w (*, 4, 4)
     """
-
     T_vis = torch.tensor(
         [
             [1.0, 0.0, 0.0, 0.0],
@@ -248,6 +246,7 @@ def transform_pyrender(T_c2w):
     return torch.einsum(
         "...ij,jk->...ik", torch.einsum("ij,...jk->...ik", T_vis, T_c2w), T_vis
     ).cpu().numpy()
+
 
 def transform_slam(T_c2w):
     """
@@ -271,13 +270,6 @@ def transform_slam(T_c2w):
 def run_vis(cfg, dataset, device):
     B = len(dataset)
     T = dataset.seq_len
-    # cam_data= dataset.get_camera_data()
-    # camera_poses_w2c = make_4x4_pose(cam_data['cam_R'], cam_data['cam_t'])
-    
-    # slam_camera_data = openJson(os.path.join(cfg.data_root, cfg.seq_name, f'{cfg.seq_name}_slam.json'))
-    # slam_camera_data = openJson(os.path.join(cfg.data_root, cfg.seq_name, 'frame_cameras.json'))
-    # cam_R = torch.Tensor(slam_camera_data['rotation']).reshape(-1,3,3)
-    # cam_t = torch.Tensor(slam_camera_data['translation'])
 
     loader = DataLoader(dataset, batch_size=int(T), shuffle=False)
 
@@ -297,7 +289,6 @@ def run_vis(cfg, dataset, device):
     smooth_data = openJson(f"{cfg.out_dir}/{cfg.seq_name}/optim_cam_bezier.json")
     if use_seq:
         long_data = openJson(f"{cfg.out_dir}/{cfg.seq_name}/optim_cams_seq.json")
-    # inerf_data = openJson(f"{cfg.out_dir}/{cfg.seq_name}/optim_cams_inerf.json")
     if use_jaws:
         jaws_data = openJson(f"{cfg.out_dir}/{cfg.seq_name}/optim_cams_jaws.json")
     
@@ -305,7 +296,7 @@ def run_vis(cfg, dataset, device):
     base_data = np.asarray(data)
     if use_seq:
         long_data = np.array(long_data)
-    # inerf_data = np.array(inerf_data)
+
     if use_jaws:
         jaws_data = np.array(jaws_data)
 
@@ -337,19 +328,13 @@ def run_vis(cfg, dataset, device):
         intrins=intrins[:, :4],
         w2c=frame_w2c,
     )
-    
             
     camera_poses_w2c = make_4x4_pose(cam_R, cam_t)
     camera_poses_c2w = torch.linalg.inv(camera_poses_w2c)
     camera_poses_c2w = transform_pyrender(camera_poses_w2c)
-    # camera_poses_c2w = torch.linalg.inv(camera_poses_w2c).cpu().numpy()
-    # camera_poses_c2w = transform_pyrender(torch.Tensor(camera_poses_c2w))
     camera_poses_c2w = transform_slam(torch.Tensor(camera_poses_c2w))
     slam_data = camera_poses_c2w
     slam_data[:,3,:] = np.array([0,0,0,1])
-    # data[:,:3,3] = data[:,:3,3] * np.array([1, -1, -1])
-
- 
         
     H,W = cfg.nerf_render_img_hw
     renderer = Renderer(5*W,5*H,alight=[0.3, 0.3, 0.3],bg_color=[1.0, 1.0, 1.0, 0.0])
@@ -377,34 +362,21 @@ def run_vis(cfg, dataset, device):
     norm_cams = []
 
     side_imgs = []
-
-    # if cfg.seq_name == 'add1':
-    #     # side_source = torch.tensor([-4.5, 0.5, 3.5])
-    #     # side_target = torch.tensor([-1.0, -0.3, 0.0])
-
-    #     side_source = torch.tensor([-4.0, 1.0, 3.5])
-    #     side_target = torch.tensor([-1.0, 0.0, 0.0])
-
-    # up = torch.tensor([0.0, 1.0, 0.0])
-    # side_pose = lookat_matrix(side_source, side_target, up).cpu().numpy()
-
     
     for t in range(len(data))[:]:
         ground_node = renderer.scene.add(ground, name="ground", pose=ground_pose)
         renderer.add_light('directlight', light_trans, np.ones(3), 0.9)
-        # renderer.add_camera(c2w, visiable=True)
 
         smooth_c2w = smooth_data[t]
         base_c2w = base_data[t]
         slam_c2w = slam_data[t]
         if use_seq:
             long_c2w = long_data[t]
-        # inerf_c2w = inerf_data[t]
         if use_jaws:
             jaws_c2w = jaws_data[t]
 
         renderer.add_camera(smooth_c2w, visiable=False)
-    # for t in [0]:
+
         meshes = []
         for k in range(len(verts[t]))[cfg.track_sid:cfg.track_eid]:
             mesh = make_mesh(verts[t][k], faces[t], colors[t][k][:3])
@@ -420,7 +392,7 @@ def run_vis(cfg, dataset, device):
         base_c2w[:3,3] = base_c2w[:3, 3] + center
         if use_seq:
             long_c2w[:3,3] =  long_c2w[:3,3] + first_center
-        # inerf_c2w[:3,3] = inerf_c2w[:3, 3] + center
+
         if use_jaws:
             jaws_c2w[:3,3] = jaws_c2w[:3, 3] + center
 
@@ -436,11 +408,6 @@ def run_vis(cfg, dataset, device):
 
         std_cam = np.dot(trans_matrix, smooth_c2w)
         norm_cams.append(std_cam.tolist())
-
-     
-        # renderer.scene.set_pose(cam_node, side_pose)
-        # rgb, depth = renderer.render(pyrender.RenderFlags.NONE)
-        # side_imgs.append(rgb)
 
         renderer.scene.set_pose(cam_node, base_c2w)
         rgb, depth = renderer.render(pyrender.RenderFlags.NONE)
@@ -467,15 +434,7 @@ def run_vis(cfg, dataset, device):
         renderer.scene.clear()
         meshes = []
 
-    # pyrender.Viewer(renderer.scene)
-    # import pdb;pdb.set_trace()
     img_save_path = os.path.join(cfg.out_dir, cfg.seq_name)
-
-    # os.makedirs(os.path.join(img_save_path, 'side'), exist_ok=True)
-    # for i,img in enumerate(side_imgs):
-    #     imageio.imsave(os.path.join(img_save_path, 'side', "{:0>4d}.png".format(i)), img)
-
-    # return 0
     
     out_right_cams = {
         'cameras': norm_cams
@@ -505,7 +464,6 @@ def run_vis(cfg, dataset, device):
     if use_jaws:
         imageio.mimwrite(os.path.join(img_save_path, '3d_view_jaws.gif'), jaws_imgs, fps=24)
 
-
     os.makedirs(os.path.join(img_save_path, '3d_view'), exist_ok=True)
     os.makedirs(os.path.join(img_save_path, '3d_view_smooth'), exist_ok=True)
     os.makedirs(os.path.join(img_save_path, '3d_view_slam'), exist_ok=True)
@@ -528,13 +486,13 @@ def moving_average(a, n) :
     ret[n:] = ret[n:] - ret[:-n]
     return ret[n - 1:] / n
 
+
 from filmingnerf.renderer.geometry.rotation import *
 def trans_matrix_smooth(data, n=10):
     rotations = data[:,:3,:3]
     rotations = matrix_to_rotation_6d(torch.Tensor(rotations)).cpu().numpy()
     positions = data[:,:3,3]
     
-    # import pdb;pdb.set_trace()
     tmp_positions = np.vstack((np.tile(positions[0], (n-1, 1)), positions))
     positions = moving_average(tmp_positions, n)
     tmp_rotations = np.vstack((np.tile(rotations[0], (n-1, 1)), rotations))
@@ -544,9 +502,7 @@ def trans_matrix_smooth(data, n=10):
     data[:, :3, :3] = rotations
     data[:, :3, 3] = positions
     return data
-  
     
-
 
 def main():
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
@@ -559,6 +515,5 @@ def main():
 
 if __name__ == "__main__":
     main()
-    # from renderer import test
-    # test.test()
+
 

@@ -182,9 +182,6 @@ def run_smpl(body_model, trans, root_orient, body_pose, betas=None):
             i:SMPLH_JOINT_NAMES[i]
         })
     mapping_ids = [52,12,17,19,21,16,18,20,0,2,5,8,1,4,7,53,54,55,56,57,58,59,60,61,62]
-    # for i in mapping_ids:
-    #     print(joints_names[i])
-    # import pdb;pdb.set_trace()
     return {
         "joints_names": joints_names,
         "mapping_ids": mapping_ids,
@@ -283,7 +280,6 @@ def track_to_colors(track_ids):
 
 
 def get_colors():
-    #     color_file = os.path.abspath(os.path.join(__file__, "../colors_phalp.txt"))
     color_file = os.path.abspath(os.path.join(__file__, "../colors.txt"))
     RGB_tuples = np.vstack(
         [

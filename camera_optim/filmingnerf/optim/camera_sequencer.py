@@ -191,17 +191,12 @@ class CameraSequencerBase(nn.Module):
         ])
 
         Pc = (torch.inverse(self.T) @ Pw)[:3]
-        # import pdb;pdb.set_trace() 
         Pc = Pc / Pc[2,0]
-        # Pc[0,0] = Pc[0,0]/Pc[2,0]
-        # Pc[1,0] = Pc[1,0]/Pc[2,0]
-        # Pc[2,0] = Pc[2,0]/Pc[2,0]
         
         po = (K @ Pc.double()).T.squeeze(0)
         
         po = po * torch.Tensor([-1,1,1])
-        po = po + torch.Tensor([w, 0, 0])
-            
+        po = po + torch.Tensor([w, 0, 0])  
         return po
 
     def transform(self, x):
@@ -212,7 +207,6 @@ class CameraSequencerBase(nn.Module):
         exp_i[3, 3] = 1.
         T_i = torch.matmul(exp_i, x)
         self.T = T_i
-        # import pdb;pdb.set_trace()
         return T_i
     
     def nerf_matrix_to_ngp(self, pose, scale=0.8, offset=[0, 0, 0]):
@@ -244,12 +238,7 @@ class CameraSequencerBase(nn.Module):
     def show_fig(self, T, save=False, save_path=None):
         import matplotlib.pyplot as plt
         X = torch.arange(0, T).float().unsqueeze(1)
-        # import pdb;pdb.set_trace()
         X = X * (1/(T-1))
-
-        # x = np.array(self.W(X).tolist())
-        # look_at_points = x[:,:3]
-        # cam_pos_points = x[:,3:]
 
         pos_points = np.array(self.V(X).tolist())
         rot_points = np.array(self.W(X).tolist())
@@ -278,7 +267,6 @@ class CameraSequencerTwo(nn.Module):
         super(CameraSequencerTwo, self).__init__()
         self.lookAt = look_at
         self.camPos = cam_pos
-        # self.W = gen_mlp(1, 6, inner_size=512)
 
         self.W = gen_mlp(1, 3, inner_size=512)
         self.V = gen_mlp(1, 3, inner_size=512)
@@ -328,17 +316,9 @@ class CameraSequencerTwo(nn.Module):
     def forward(self, t):
         t_in = torch.tensor(t).float().unsqueeze(0)
         
-        # x = self.W(t_in)
-        # new_look_at = x[:3]+ self.lookAt
-        # new_cam_pos = x[3:] + self.camPos
-
         new_look_at = self.W(t_in) + self.lookAt
         new_cam_pos = self.V(t_in) + self.camPos
   
-        # t_in = torch.arange(0,t+1).float().unsqueeze(1)
-        # new_look_at = self.W(t_in).sum(0) + self.lookAt
-        # new_cam_pos = self.V(t_in).sum(0) + self.camPos
-
         camera_pose = lookat_matrix_ngp(new_cam_pos, new_look_at, torch.Tensor([0, -1, 0]))
         self.T = lookat_matrix(new_cam_pos, new_look_at, torch.Tensor([0, 1, 0]))
 
@@ -347,12 +327,7 @@ class CameraSequencerTwo(nn.Module):
     def show_fig(self, T, save=False, save_path=None):
         import matplotlib.pyplot as plt
         X = torch.arange(0, T).float().unsqueeze(1)
-        # import pdb;pdb.set_trace()
         X = X * (1/(T-1))
-
-        # x = np.array(self.W(X).tolist())
-        # look_at_points = x[:,:3]
-        # cam_pos_points = x[:,3:]
 
         look_at_points = np.array(self.W(X).tolist())
         cam_pos_points = np.array(self.V(X).tolist())

@@ -66,7 +66,6 @@ def pose_optimize():
     depths = []
     print('start camera pose optimizing process......')
     for i_step in tqdm(range(cfg.cam_optim_setps)):
-    # for i_step in tqdm(range(10)):
         pose = camera_model()
         hwf = [
                 h,w,
@@ -108,7 +107,6 @@ def pose_optimize():
         loss.backward()
 
         if i_step % 10 == 0:
-            # show_grad(camera_model)
             print(f"Step {i_step}, loss: {loss}")
         
         save_root = os.path.join(cfg.out_dir, cfg.seq_name, str(t))
@@ -136,7 +134,6 @@ def pose_optimize():
             imageio.imwrite(filename_dep, depth8)
             imageio.imwrite(filename_rgb, rgb8)
 
-        # import pdb;pdb.set_trace()
         optimizer.step()
     params = camera_model.extract_params()
     x,y,z,scale,phi,theta = params
@@ -154,19 +151,13 @@ def pose_visualise(pose,radius=0.2,height=0.3, up="y"):
     cam_verts, cam_faces, _ = camera_marker_geometry(radius, height, up)
     
     for i in range(len(cam_verts)):
-        # verts[i][1] = -verts[i][1]
-        # verts[i][2] = -verts[i][2]
         tmp = torch.ones(4).cpu()
         tmp[:3] = torch.Tensor(cam_verts[i]).cpu()
-        # import pdb;pdb.set_trace()
         cam_verts[i] = (pose @ tmp).numpy()[:3]
     
     x = cam_verts[:,0].tolist()
-    # x = [-i for i in x]
     y = cam_verts[:,1].tolist()
     z = cam_verts[:,2].tolist()
-    # y = [-i for i in y]
-    # z = [-i for i in z]
     
     i = cam_faces[:,0].tolist()
     j = cam_faces[:,1].tolist()
@@ -186,10 +177,7 @@ def pose_visualise(pose,radius=0.2,height=0.3, up="y"):
 
     transform = torch.eye(4)
     transform[:3,3] = torch.Tensor(mesh_center)
-    # print(t, verts[:10])
     for i in range(len(cal_smpl_verts)):
-        # verts[i] = verts[i] - torch.Tensor(mesh_center)
-        # import pdb;pdb.set_trace()
         cal_smpl_verts[i][1] = -cal_smpl_verts[i][1]
         cal_smpl_verts[i][2] = -cal_smpl_verts[i][2]
         tmp = torch.ones((4,1))
@@ -198,15 +186,11 @@ def pose_visualise(pose,radius=0.2,height=0.3, up="y"):
 
     x,y,z = [],[],[]
     x = cal_smpl_verts[:,0].tolist()
-    # x = [-i for i in x]
     y = cal_smpl_verts[:,1].tolist()
-    # z = [-i for i in z]
     z = cal_smpl_verts[:,2].tolist()
-    # y = [-i for i in y]
     i = smpl_faces[t].squeeze(0)[:,0].tolist()
     j = smpl_faces[t].squeeze(0)[:,1].tolist()
     k = smpl_faces[t].squeeze(0)[:,2].tolist()
-    # import pdb;pdb.set_trace()
     smpl_mesh = go.Mesh3d(x=x, y=y, z=z, i=i,j=j,k=k,
                           color='lightblue', opacity=1)
 
@@ -224,8 +208,6 @@ def pose_visualise(pose,radius=0.2,height=0.3, up="y"):
                         yaxis = dict(nticks=4, range=[-5,5],),
                         zaxis = dict(nticks=4, range=[-5,5],),)
                         )
-
-
     return fig
 
 def CineUI():
@@ -280,7 +262,6 @@ layouts, smpl_info = load_layouts(tracks_path, smpl_model_path, vis_mask, track_
 
 t = cfg.t
 nerf_data_root, mesh_center, mesh_colors = launch_renderer(layouts, smpl_info, cfg, t, 'train')
-# import pdb;pdb.set_trace()
 nerf_config_path = gen_nerf_config_hashnerf(nerf_data_root, f'{cfg.seq_name}_{t}')
 nerf = build_nerf(nerf_config_path, device)
 nerf_ckpt_path = os.path.join(nerf_data_root, 'logs')
@@ -305,7 +286,6 @@ kjoints2d = obs_data["joints2d"][t]
 mapping_ids = smpl_info['mapping_ids']
 smpl_joints = smpl_info['joints'][:,t,:,:]
         
-# import pdb;pdb.set_trace()
 print('generate mask color img')
 mask_root= dataset.data_sources['mask_root']
 track_path = dataset.data_sources['tracks']
@@ -324,8 +304,6 @@ for k in range(len(dataset.track_ids[:])):
     mask_img_p = imageio.imread(mask_file_path)
     mask_img_p = cv2.resize(mask_img_p, (w, h))
     color_mask = mask_img_p > 0
-    # color_mask_img_p = np.zeros_like(rgb_gt.cpu().numpy())
-    # color_mask_img_p[color_mask] = color.cpu().numpy()
     mask_color_img[color_mask] = color.cpu().numpy()
 mask_color_img = torch.tensor(mask_color_img).to(device)
 

@@ -5,14 +5,11 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# from dnerf.provider import NeRFDataset
-# from dnerf.utils import *
 from torch_ngp.dnerf.provider import NeRFDataset
 from torch_ngp.dnerf.utils import *
 from main_dnerf import config_parser
 
 from functools import partial
-# from loss import huber_loss
 from torch_ngp.loss import huber_loss
 
 to8b = lambda x : (255*np.clip(x,0,1)).astype(np.uint8)
@@ -73,7 +70,6 @@ class DNerfNGP:
             print(f"[WARN] missing keys: {missing_keys}")
         if len(unexpected_keys) > 0:
             print(f"[WARN] unexpected keys: {unexpected_keys}")   
-
 
         if self.model.cuda_ray:
             if 'mean_count' in checkpoint_dict:

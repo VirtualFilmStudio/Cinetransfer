@@ -38,8 +38,6 @@ def train():
     zs = y[:, 2]
     ax.scatter(xs.numpy(), ys.numpy(), zs.numpy(), marker="^")
         
-    # plt.show()
-    # import pdb;pdb.set_trace()
     print('------      build net      ------')
     class Net(torch.nn.Module):
         def __init__(self, max_len, hidden_dim=512):
@@ -50,9 +48,7 @@ def train():
 
         def forward(self, x):
             x = x.float().unsqueeze(1)
-            # import pdb;pdb.set_trace()
             x = self.encoder(x)
-            # x = self.pe(x).squeeze(1)
             x = self.predict(F.relu(x))
             return x
     net=Net(max_len=len(x))
@@ -64,7 +60,6 @@ def train():
 
     for t in range(200000):
         prediction=net(x)
-        # import pdb;pdb.set_trace()
         loss=loss_func(prediction,y)
         optimizer.zero_grad()  
         loss.backward() 

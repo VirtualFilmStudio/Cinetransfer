@@ -112,8 +112,6 @@ def run_opt_position(cfg, dataset, device):
         out_poses.append(c2w.tolist())
         if t%1==0:
             renderer.add_camera(c2w.numpy(), visiable=True)
-    # pyrender.Viewer(renderer.scene)
-    # import pdb;pdb.set_trace()
 
     save_root = os.path.join(cfg.out_dir, cfg.seq_name)
     with open(os.path.join(save_root, 'optim_cam_bezier.json'), "w") as f:
@@ -125,7 +123,7 @@ def run_opt_rotation(cfg, device):
     rot_6ds = matrix_to_rotation_6d(rot_matrixes)
 
     PCA_visualise(rot_6ds.cpu().numpy())
-    import pdb;pdb.set_trace()
+
 
 def PCA_visualise(data):
     from sklearn.decomposition import PCA
@@ -142,7 +140,7 @@ def PCA_visualise(data):
     plt.xlim([-1,1])
     plt.ylim([-1,1])
     plt.show()
-    import pdb;pdb.set_trace()
+
 
 def main():
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
@@ -151,7 +149,6 @@ def main():
     dataset = get_data_from_cfg(cfg)
     device = get_device(0)
     run_opt_position(cfg, dataset, device)
-    # run_opt_rotation(cfg, device)
 
 
 if __name__ == "__main__":

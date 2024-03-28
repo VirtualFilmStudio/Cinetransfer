@@ -19,7 +19,6 @@ def filter_visible_meshes(verts, colors, faces, vis_mask=None, vis_opacity=False
         if True, make occluded people alpha=0.5, otherwise alpha=1
     returns a list of T lists verts (Bi, V, 3), colors (Bi, 4), faces (F, 3)
     """
-    #     import ipdb; ipdb.set_trace()
     B, T = verts.shape[:2]
     faces = [faces for t in range(T)]
     if vis_mask is None:
@@ -74,12 +73,10 @@ def track_to_colors(track_ids):
     return color_map[track_ids] / 255  # (B, 3)
 
 def get_colors():
-    #     color_file = os.path.abspath(os.path.join(__file__, "../colors_phalp.txt"))
     color_file = os.path.abspath(os.path.join(__file__, "../colors.txt"))
     RGB_tuples = np.vstack(
         [
             np.loadtxt(color_file, skiprows=0),
-            #             np.loadtxt(color_file, skiprows=1),
             np.random.uniform(0, 255, size=(10000, 3)),
             [[0, 0, 0]],
         ]

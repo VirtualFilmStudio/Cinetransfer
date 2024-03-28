@@ -208,17 +208,14 @@ def pose_visualise(pose,radius=0.2,height=0.3, up="y"):
         up=dict(x=0, y=1, z=0),
         center=dict(x=0, y=0, z=0),
         eye=dict(x=1.25, y=1.25, z=1.25)
-)
+    )
     fig.update_layout(
         scene_camera=camera,
         scene_aspectmode='cube',
-        scene = dict(
-            xaxis = dict(nticks=4, range=[-5,5],),
-                        yaxis = dict(nticks=4, range=[-5,5],),
-                        zaxis = dict(nticks=4, range=[-5,5],),)
-                        )
-
-
+        scene = dict(xaxis = dict(nticks=4, range=[-5,5],),
+                    yaxis = dict(nticks=4, range=[-5,5],),
+                    zaxis = dict(nticks=4, range=[-5,5],),)
+    )
     return fig
     
 def CineUI():
@@ -256,7 +253,6 @@ if __name__ == "__main__":
     B = len(dataset)
     T = dataset.seq_len
     cam_data= dataset.get_camera_data()
-
 
     loader = DataLoader(dataset, batch_size=int(T), shuffle=False)
 
@@ -330,7 +326,6 @@ if __name__ == "__main__":
 
     with gr.Blocks() as demo:
         CineUI()
-
 
     demo.launch()
 

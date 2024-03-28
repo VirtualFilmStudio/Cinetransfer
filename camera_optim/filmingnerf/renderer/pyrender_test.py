@@ -32,6 +32,3 @@ renderer.add_light('directlight', light_trans, np.ones(3), 100)
 
 import pyrender
 pyrender.Viewer(renderer.scene)
-# rgb, depth = renderer.render()
-# imageio.imsave(os.path.join(save_root, "rgb.png"), rgb)
-# imageio.imsave(os.path.join(save_root, "depth.png"), depth)
