@@ -63,7 +63,7 @@ def run_opt(cfg, dataset, device):
     if os.path.exists(save_root):
         init_pose = openJson(save_root)
     else:
-        from run_cam_vis import transform_pyrender, transform_slam
+        from run_camera_vis import transform_pyrender, transform_slam
         camera_poses_w2c = make_4x4_pose(cam_R, cam_t)
         camera_poses_c2w = torch.linalg.inv(camera_poses_w2c)
         camera_poses_c2w = transform_pyrender(camera_poses_w2c)
