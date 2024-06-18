@@ -6,8 +6,6 @@ The repo is the official implemenation of **Cinematic Behavior Transfer via NeRF
 
 We have **[VirtualFilmStudio](https://virtualfilmstudio.github.io/)** to showcase some of our explorations in filmmaking directions.
 
-## News
-- **[2024.02.xx]** We release our code.
 ## Getting start
 ```shell
 git clone https://github.com/VirtualFilmStudio/Cinetransfer.git
